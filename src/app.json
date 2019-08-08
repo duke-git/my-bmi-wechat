@@ -1,0 +1,60 @@
+{
+  "pages": [
+    "pages/index/main",
+    "pages/calculate/main",
+    "pages/mypage/main"
+  ],
+  "window": {
+    "backgroundTextStyle": "light",
+    "navigationBarBackgroundColor": "#7ebb85",
+    "navigationBarTitleText": "BMI计算器",
+    "navigationBarTextStyle": "black"
+  },
+  "tabBar": {
+    "color": "#999",
+    "backgroundColor": "#fafafa",
+    "selectedColor": "#333",
+    "borderStyle": "white",
+    "list": [
+      {
+        "text": "首页",
+        "pagePath": "pages/index/main",
+        "iconPath": "static/tabs/home.png",
+        "selectedIconPath": "static/tabs/home-active.png"
+      },
+      {
+        "text": "BMI计算",
+        "pagePath": "pages/calculate/main",
+        "iconPath": "static/tabs/calculate.png",
+        "selectedIconPath": "static/tabs/calculate-active.png"
+      },
+      {
+        "text": "我的记录",
+        "pagePath": "pages/mypage/main",
+        "iconPath": "static/tabs/my.png",
+        "selectedIconPath": "static/tabs/my-active.png"
+      }
+    ],
+    "items": [
+      {
+        "name": "首页",
+        "pagePath": "pages/index/main",
+        "icon": "static/tabs/home.png",
+        "activeIcon": "static/tabs/home-active.png"
+      },
+      {
+        "name": "BMI计算",
+        "pagePath": "pages/calculate/main",
+        "icon": "static/tabs/calculate.png",
+        "activeIcon": "static/tabs/calculate-active.png"
+      },
+      {
+        "name": "我的记录",
+        "pagePath": "pages/mypage/main",
+        "icon": "static/tabs/my.png",
+        "activeIcon": "static/tabs/my-active.png"
+      }
+    ],
+    "position": "bottom"
+  }
+}
