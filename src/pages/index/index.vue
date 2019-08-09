@@ -1,5 +1,5 @@
 <template>
-  <div class="app-wrapper">
+  <div class="index-wrapper">
     <div class="header-wrapper">
       <img class="bg-img" src="/static/images/bg.jpeg" background-size="cover" />
     </div>
@@ -42,8 +42,7 @@ export default {
 </script>
 
 <style scoped>
-.app-wrapper {
-  display: block;
+.index-wrapper {
   background: #7ebb85;
 }
 .header-wrapper {
