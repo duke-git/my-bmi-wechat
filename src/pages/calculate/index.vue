@@ -22,6 +22,57 @@
         <mp-button type="default" size="large" btnClass="mb15 mr15" plain @click="reset">重置数据</mp-button>
       </div>
     </div>
+    <div class="table-wrapper">
+      <span class="table-title">参考数据：</span>
+      <div class="bmi-table">
+        <div class="bmi-table-head">
+          <div class="tr">
+            <div class="th">BMI分类</div>
+            <div class="th">WHO标准</div>
+            <div class="th">亚洲标准</div>
+            <div class="th">中国标准</div>
+          </div>
+        </div>
+        <div class="bmi-table-body">
+          <div class="tr">
+            <div class="td">偏瘦</div>
+            <div class="td">{{" < 18.5"}}</div>
+            <div class="td">{{" < 18.5"}}</div>
+            <div class="td">{{" < 18.5"}}</div>
+          </div>
+          <div class="tr">
+            <div class="td">正常</div>
+            <div class="td">18.5～24.9</div>
+            <div class="td">18.5～22.9</div>
+            <div class="td">18.5～23.9</div>
+          </div>
+          <div class="tr">
+            <div class="td">超重</div>
+            <div class="td">≥25</div>
+            <div class="td">≥23</div>
+            <div class="td">≥24</div>
+          </div>
+          <div class="tr">
+            <div class="td">偏胖</div>
+            <div class="td">25.0～29.9</div>
+            <div class="td">23～24.9</div>
+            <div class="td">24～24.9</div>
+          </div>
+          <div class="tr">
+            <div class="td">肥胖</div>
+            <div class="td">30.0～34.9</div>
+            <div class="td">25～29.9</div>
+            <div class="td">27～29.9</div>
+          </div>
+          <div class="tr">
+            <div class="td">重度肥胖</div>
+            <div class="td">35.0～39.9</div>
+            <div class="td">≥30</div>
+            <div class="td">≥30</div>
+          </div>
+        </div>
+      </div>
+    </div>
     <mp-toast
       :type="tost.type"
       v-model="tost.show"
@@ -117,6 +168,9 @@ export default {
   background: #7ebb85;
   padding: 10px 10px;
   color: #fff;
+  position: fixed;
+  width: 95%;
+  z-index: 100;
 }
 .bmi-text {
   font-size: 20px;
@@ -133,6 +187,8 @@ export default {
   background: #fff;
   padding: 10px;
   font-size: 14px;
+  position: relative;
+  top: 150px;
 }
 .form-item {
   border-bottom: 1px solid #e0e0e0;
@@ -150,5 +206,44 @@ export default {
 .button-wrapper button {
   background: #7ebb85 important!;
   margin-right: 5px;
+}
+
+.table-wrapper {
+  margin-top: 15px;
+  position: relative;
+  top: 150px;
+}
+
+.table-title {
+  font-size: 14px;
+  padding-left: 5px;
+}
+
+.bmi-table {
+  width: 90%;
+  border-bottom: 1px solid #ebebeb;
+  border-top: 1px solid #ebebeb;
+  font-size: 14px;
+  padding: 0 10px;
+}
+.bmi-table-head {
+  color: #909399;
+  font-weight: 500;
+  background-color: #f5f5f5;
+}
+
+.bmi-table-body {
+  text-align: center;
+  color: #606266;
+}
+.tr {
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+  border-bottom: 0.1px solid #e0e0e0;
+}
+.th .td {
+   text-align: center;
+   width: 100%;
 }
 </style>
