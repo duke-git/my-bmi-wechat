@@ -79,6 +79,30 @@
       :content="tost.content"
       :duration="tost.duration"
     ></mp-toast>
+    <img
+      v-show="aniImageType=='happy'"
+      class="animate-img"
+      :animation="myAnimation"
+      src="/static/images/happy.gif"
+    />
+    <img
+      v-show="aniImageType=='heavy'"
+      class="animate-img"
+      :animation="myAnimation"
+      src="/static/images/heavy.gif"
+    />
+    <img
+      v-show="aniImageType=='workout'"
+      class="animate-img"
+      :animation="myAnimation"
+      src="/static/images/workout.gif"
+    />
+    <img
+      v-show="aniImageType=='eat'"
+      class="animate-img"
+      :animation="myAnimation"
+      src="/static/images/eat.gif"
+    />
   </div>
 </template>
 
@@ -107,9 +131,18 @@ export default {
         type: "default",
         content: "",
         duration: 1500
-      }
+      },
+      myAnimation: null,
+      aniImageType: ""
     };
   },
+
+  // onReady: function() {
+  //   this.myAnimation = wx.createAnimation({
+  //     duration: 800,
+  //     timingFunction: "ease"
+  //   });
+  // },
 
   methods: {
     handleCalculate() {
@@ -118,11 +151,14 @@ export default {
       } else {
         this.calculateBMI();
         this.calulateWeight();
+        this.showTip();
+        this.translateAnimation();
       }
     },
     calculateBMI() {
       let bmiValue = this.weight / Math.pow(this.height * 0.01, 2);
       this.bmi = bmiValue.toFixed(1);
+      this.showTost("success", "请填写身高和体重值", 2000);
     },
     calulateWeight() {
       let bmi = this.bmi;
@@ -140,7 +176,43 @@ export default {
       } else if (bmi >= 30) {
         this.bodyHealth = "重度肥胖";
       }
-      this.standWeight = standWeight;
+      this.standWeight = standWeight.toFixed(2);
+    },
+    showTip() {
+      if (this.bmi < 18.5) {
+        this.aniImageType = "eat";
+        this.showTost("success", "需要多吃肉肉哦", 4000);
+      } else if (this.bmi < 23.9 && this.bmi >= 18.5) {
+        this.aniImageType = "happy";
+        this.showTost("success", "哇... 完美身材呀", 4000);
+      } else if (this.bmi < 27 && this.bmi >= 24) {
+        this.aniImageType = "workout";
+        this.showTost("success", "建议锻炼，否则向肉肉多发展中...", 4000);
+      } else if (this.bmi >= 27) {
+        this.aniImageType = "heavy";
+        this.showTost("success", "墙裂建议减肥", 4000);
+      }
+    },
+    translateAnimation() {
+      this.myAnimation = null;
+      this.myAnimation = wx.createAnimation({
+        duration: 800,
+        timingFunction: "ease"
+      });
+      this.myAnimation.translate(220, 0).step();
+      this.myAnimation = this.myAnimation.export();
+      setTimeout(() => {
+        this.clearAnimation();
+      }, 4000);
+    },
+    clearAnimation() {
+      this.myAnimation = null;
+      this.myAnimation = wx.createAnimation({
+        duration: 800,
+        timingFunction: "ease"
+      });
+      this.myAnimation.translate(-220, 0).step();
+      this.myAnimation = this.myAnimation.export();
     },
     reset() {
       this.bmi = 0;
@@ -149,6 +221,7 @@ export default {
       this.bmiStand = "";
       this.bodyHealth = "";
       this.standWeight = "";
+      this.clearAnimation();
     },
     showTost(type, content, duration = 1500) {
       this.tost.show = true;
@@ -242,8 +315,14 @@ export default {
   justify-content: space-between;
   border-bottom: 0.1px solid #e0e0e0;
 }
-.th .td {
-   text-align: center;
-   width: 100%;
+
+.animate-img {
+  width: 90px;
+  height: 90px;
+  vertical-align: middle;
+  position: absolute;
+  top: 25%;
+  z-index: 1000;
+  left: -80px;
 }
 </style>
