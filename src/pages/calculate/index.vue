@@ -259,6 +259,9 @@ export default {
       this.tost.content = content;
       this.tost.duration = duration;
     }
+  },
+  mounted() {
+    wx.showShareMenu();
   }
 };
 </script>

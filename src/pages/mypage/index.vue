@@ -20,6 +20,16 @@
         @touchstart="touchHandler"
       ></canvas>
     </div>
+    <div class="btn-wrapper">
+      <button class="btn-item btn-share" open-type="share">
+        <img class="btn-icon" src="/static/images/share.png" />
+        <span>分享给好友</span>
+      </button>
+      <button class="btn-item btn-pay">
+        <img class="btn-icon" src="/static/images/pay.png" />
+        <span>打赏开发者</span>
+      </button>
+    </div>
     <mp-datepicker
       ref="mpDatePicker"
       :themeColor="searchDate.themeColor"
@@ -34,12 +44,14 @@
 import { formatTime } from "@/utils/index";
 let wxCharts = require("@/utils/wxcharts-min.js");
 import mpDatepicker from "mpvue-weui/src/date-picker";
+import mpButton from "mpvue-weui/src/button";
 
 export default {
   components: {
-    mpDatepicker
+    mpDatepicker,
+    mpButton
   },
-  onLoad: function() {
+  onShow: function() {
     let windowWidth = 320;
     try {
       let res = wx.getSystemInfoSync();
@@ -48,44 +60,49 @@ export default {
       console.error("getSystemInfoSync failed!");
     }
     let chartData = this.getChartData();
-    this.lineChart = new wxCharts({
-      canvasId: "lineCanvas",
-      type: "line",
-      categories: chartData.categories,
-      animation: true,
-      series: [
-        {
-          name: "体重",
-          data: chartData.weight,
-          format: function(val, name) {
-            return val + "kg";
+    if (chartData.bmis.length > 0) {
+      this.lineChart = new wxCharts({
+        canvasId: "lineCanvas",
+        type: "line",
+        categories: chartData.categories,
+        animation: true,
+        series: [
+          {
+            name: "体重",
+            data: chartData.weight,
+            format: function(val, name) {
+              return val + "kg";
+            }
+          },
+          {
+            name: "BMI",
+            data: chartData.bmis,
+            format: function(val, name) {
+              return val;
+            }
           }
+        ],
+        xAxis: {
+          disableGrid: true
         },
-        {
-          name: "BMI",
-          data: chartData.bmis,
-          format: function(val, name) {
-            return val;
-          }
+        yAxis: {
+          format: function(val) {
+            return val.toFixed(2);
+          },
+          min: 0
+        },
+        width: windowWidth,
+        height: 200,
+        dataLabel: false,
+        dataPointShape: true,
+        extra: {
+          lineStyle: "curve"
         }
-      ],
-      xAxis: {
-        disableGrid: true
-      },
-      yAxis: {
-        format: function(val) {
-          return val.toFixed(2);
-        },
-        min: 0
-      },
-      width: windowWidth,
-      height: 200,
-      dataLabel: false,
-      dataPointShape: true,
-      extra: {
-        lineStyle: "curve"
-      }
-    });
+      });
+      this.isCanvasShow = true;
+    } else {
+      this.isCanvasShow = false;
+    }
   },
   data() {
     return {
@@ -102,18 +119,20 @@ export default {
   methods: {
     getChartData: function() {
       let bmis = wx.getStorageSync("bmis");
-      bmis = JSON.parse(bmis);
       let chartData = {
         categories: [],
         bmis: [],
         weight: []
       };
 
-      bmis.forEach(item => {
-        chartData.categories.push(item.id);
-        chartData.bmis.push(Number(item.bmi));
-        chartData.weight.push(Number(item.weight));
-      });
+      if (bmis) {
+        bmis = JSON.parse(bmis);
+        bmis.forEach(item => {
+          chartData.categories.push(item.id);
+          chartData.bmis.push(Number(item.bmi));
+          chartData.weight.push(Number(item.weight));
+        });
+      }
       console.log("chart data", chartData);
       return chartData;
       // return {
@@ -157,6 +176,35 @@ export default {
       this.isCanvasShow = true;
       console.log("onCancel", e);
     }
+  },
+  onShareAppMessage: function(ops) {
+    if (ops.from === "button") {
+      // 来自页面内转发按钮
+      console.log(ops.target);
+    }
+    return {
+      title: "BMI计算器",
+      path: "/pages/index/main", // 这里的 path 是页面 url，而不是小程序路由
+      success: function(res) {
+        // 转发成功
+        console.log("转发成功:" + JSON.stringify(res));
+        let shareTickets = res.shareTickets;
+        // if (shareTickets.length == 0) {
+        //   return false;
+        // }
+        //可以获取群组信息
+        wx.getShareInfo({
+          shareTicket: shareTickets[0],
+          success: function(res) {
+            console.log(res);
+          }
+        });
+      },
+      fail: function(res) {
+        // 转发失败
+        console.log("转发失败:" + JSON.stringify(res));
+      }
+    };
   }
 };
 </script>
@@ -194,6 +242,33 @@ canvas {
 }
 .search-date-clickable {
   border: 0.5px solid #e0e0e0;
-  box-shadow: 1px 0.5rpx 0.5rpx 0.5rpx #2f5024;
+  box-shadow: 0px 0.5rpx 0.5rpx 0px #2f5024;
+}
+.btn-wrapper {
+  position: fixed;
+  bottom: 0;
+  font-size: 16px;
+  width: 100%;
+}
+.btn-item {
+  display: inline-block;
+  width: 50%;
+  text-align: center;
+  line-height: 2.5;
+  border: 0.5px solid #e0e0e0;
+  border-right: none;
+}
+
+.btn-share {
+  background: #7ebb85;
+}
+.btn-pay {
+  background: #74b3d8;
+}
+.btn-icon {
+  width: 20px;
+  height: 20px;
+  vertical-align: text-bottom;
+  margin-right: 10px;
 }
 </style>

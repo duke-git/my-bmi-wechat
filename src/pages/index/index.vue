@@ -1,7 +1,8 @@
 <template>
   <div class="index-wrapper">
     <div class="header-wrapper">
-      <img class="bg-img" src="/static/images/bg.jpeg" background-size="cover" />
+      <img class="bg-img" src="/static/images/header_bg.png" background-size="cover" />
+      <span class="title">身体质量指数(BMI)计算器</span>
     </div>
     <div class="button-wrapper" @click="start">
       <span>开</span>
@@ -34,9 +35,8 @@ export default {
       }
     }
   },
-
-  created() {
-    // let app = getApp()
+  mounted() {
+    wx.showShareMenu();
   }
 };
 </script>
@@ -49,9 +49,16 @@ export default {
   text-align: center;
   margin-bottom: 14px;
 }
+.title {
+  position: absolute;
+  top: 20%;
+  left: 20%;
+  font-size: 20px;
+  font-weight: bolder;
+}
 .bg-img {
   width: 100%;
-  height: 300px;
+  height: 260px;
 }
 .button-wrapper {
   text-align: center;
