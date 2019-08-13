@@ -51,62 +51,10 @@ export default {
     mpDatepicker,
     mpButton
   },
-  onShow: function() {
-    let windowWidth = 320;
-    try {
-      let res = wx.getSystemInfoSync();
-      windowWidth = res.windowWidth;
-    } catch (e) {
-      console.error("getSystemInfoSync failed!");
-    }
-    let chartData = this.getChartData();
-    if (chartData.bmis.length > 0) {
-      this.lineChart = new wxCharts({
-        canvasId: "lineCanvas",
-        type: "line",
-        categories: chartData.categories,
-        animation: true,
-        series: [
-          {
-            name: "体重",
-            data: chartData.weight,
-            format: function(val, name) {
-              return val + "kg";
-            }
-          },
-          {
-            name: "BMI",
-            data: chartData.bmis,
-            format: function(val, name) {
-              return val;
-            }
-          }
-        ],
-        xAxis: {
-          disableGrid: true
-        },
-        yAxis: {
-          format: function(val) {
-            return val.toFixed(2);
-          },
-          min: 0
-        },
-        width: windowWidth,
-        height: 200,
-        dataLabel: false,
-        dataPointShape: true,
-        extra: {
-          lineStyle: "curve"
-        }
-      });
-      this.isCanvasShow = true;
-    } else {
-      this.isCanvasShow = false;
-    }
-  },
   data() {
     return {
       lineChart: null,
+      chartData: [],
       isCanvasShow: true,
       searchDate: {
         start: "",
@@ -117,6 +65,60 @@ export default {
     };
   },
   methods: {
+    initChart: function() {
+      this.isCanvasShow = true;
+      let windowWidth = 320;
+      try {
+        let res = wx.getSystemInfoSync();
+        windowWidth = res.windowWidth;
+      } catch (e) {
+        console.error("getSystemInfoSync failed!");
+      }
+      let chartData = this.chartData;
+      console.log("chartData", chartData);
+      if (chartData.bmis.length > 0) {
+        this.lineChart = new wxCharts({
+          canvasId: "lineCanvas",
+          type: "line",
+          categories: chartData.categories,
+          animation: true,
+          series: [
+            {
+              name: "体重",
+              data: chartData.weight,
+              format: function(val, name) {
+                return val + "kg";
+              }
+            },
+            {
+              name: "BMI",
+              data: chartData.bmis,
+              format: function(val, name) {
+                return val;
+              }
+            }
+          ],
+          xAxis: {
+            disableGrid: true
+          },
+          yAxis: {
+            format: function(val) {
+              return val.toFixed(2);
+            },
+            min: 0
+          },
+          width: windowWidth,
+          height: 200,
+          dataLabel: false,
+          dataPointShape: true,
+          extra: {
+            lineStyle: "curve"
+          }
+        });
+      } else {
+        this.isCanvasShow = false;
+      }
+    },
     getChartData: function() {
       let bmis = wx.getStorageSync("bmis");
       let chartData = {
@@ -133,24 +135,7 @@ export default {
           chartData.weight.push(Number(item.weight));
         });
       }
-      console.log("chart data", chartData);
-      return chartData;
-      // return {
-      //   categories: [
-      //     "2016-01-01",
-      //     "2016-01-02",
-      //     "2016-01-03",
-      //     "2016-01-04",
-      //     "2016-01-05",
-      //     "2016-01-06",
-      //     "2016-01-07",
-      //     "2016-01-08",
-      //     "2016-01-09",
-      //     "2016-01-10"
-      //   ],
-      //   bmis: [17.1, 18.1, 19.1, 20.1, 21.1, 20.1, 19.8, 20.8, 18.8, 19.8],
-      //   weight: [65, 68, 70, 71, 73, 66, 69, 67, 72, 73]
-      // };
+      this.chartData = chartData;
     },
     touchHandler: function(e) {
       console.log(this.lineChart.getCurrentDataIndex(e));
@@ -165,17 +150,48 @@ export default {
       this.isCanvasShow = false;
     },
     onConfirm(e) {
-      this.isCanvasShow = true;
+      console.log("onConfirm", e);
       let value = e.value;
       let date = value[0] + "-" + value[1] + "-" + value[2];
       this.searchDate.start = this.utils.getDate(new Date(date));
       this.searchDate.end = this.utils.getDate(new Date(date), "before", 9);
-      console.log("onConfirm", e);
+      this.searchBmis();
+    },
+    searchBmis() {
+      console.log("searchbmis");
+      let start = this.searchDate.start;
+      let end = this.searchDate.end;
+      let bmis = wx.getStorageSync("bmis");
+      let chartData = {
+        categories: [],
+        bmis: [],
+        weight: []
+      };
+
+      if (bmis) {
+        bmis = JSON.parse(bmis);
+        bmis = bmis.filter(item => {
+          return item.id >= end && item.id <= start;
+        });
+        console.log("bmis", bmis);
+        bmis.forEach(item => {
+          chartData.categories.push(item.id);
+          chartData.bmis.push(Number(item.bmi));
+          chartData.weight.push(Number(item.weight));
+        });
+      }
+
+      this.chartData = chartData;
+      this.initChart();
     },
     onCancel(e) {
       this.isCanvasShow = true;
       console.log("onCancel", e);
     }
+  },
+  mounted() {
+    this.getChartData();
+    this.initChart();
   },
   onShareAppMessage: function(ops) {
     if (ops.from === "button") {
@@ -257,6 +273,7 @@ canvas {
   line-height: 2.5;
   border: 0.5px solid #e0e0e0;
   border-right: none;
+  border-radius: 0;
 }
 
 .btn-share {
