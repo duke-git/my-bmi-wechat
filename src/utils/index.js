@@ -1,5 +1,11 @@
 
 let utils = {
+  /**
+   *返回时间字符串表示 “yyyy-mm-dd:hh:mm:ss”
+   *
+   * @param {*} date
+   * @returns
+   */
   getDatetime(date) {
       let d = date ? date : new Date();
       let year = d.getFullYear();

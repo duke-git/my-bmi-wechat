@@ -17,6 +17,11 @@
         <label for="体重">体重(kg)：</label>
         <input class="form-item-input" type="digit" placeholder="请输入体重值" v-model="weight" />
       </div>
+      <div class="form-item">
+        <label>是否保存：</label>
+        <span style="color: #a9a9a9;font-size:12px;">注：由于BMI值短时间波动稳定，每天只会保存一次计算结果，多次计算会覆盖同一天之前的结果。</span>
+        <mp-switch v-model="isSave"></mp-switch>
+      </div>
       <div class="button-wrapper">
         <mp-button type="primary" size="large" btnClass="mb15 mr15" @click="handleCalculate">开始计算</mp-button>
         <mp-button type="default" size="large" btnClass="mb15 mr15" plain @click="reset">重置数据</mp-button>
@@ -111,12 +116,14 @@ import { formatTime } from "@/utils/index";
 import mpPicker from "mpvue-weui/src/picker";
 import mpButton from "mpvue-weui/src/button";
 import mpToast from "mpvue-weui/src/toast";
+import mpSwitch from "mpvue-weui/src/switch";
 
 export default {
   components: {
     mpPicker,
     mpButton,
-    mpToast
+    mpToast,
+    mpSwitch
   },
   data() {
     return {
@@ -133,7 +140,8 @@ export default {
         duration: 1500
       },
       myAnimation: null,
-      aniImageType: ""
+      aniImageType: "",
+      isSave: false
     };
   },
 
@@ -150,6 +158,7 @@ export default {
         this.showTost("warn", "请填写身高和体重值");
       } else {
         this.calculateBMI();
+        this.saveBMI();
         this.calulateWeight();
         this.showTip();
         this.translateAnimation();
@@ -158,7 +167,28 @@ export default {
     calculateBMI() {
       let bmiValue = this.weight / Math.pow(this.height * 0.01, 2);
       this.bmi = bmiValue.toFixed(1);
-      this.showTost("success", "请填写身高和体重值", 2000);
+    },
+    saveBMI() {
+      let date = this.utils.getDate(new Date());
+      let item = {
+        id: date,
+        weight: this.weight,
+        bmi: this.bmi
+      };
+
+      if (this.isSave) {
+        let bmis = wx.getStorageSync("bmis");
+        if (bmis) {
+          let data = JSON.parse(bmis);
+          data = data.filter(bmi => {
+            return bmi.id != item.id;
+          });
+          data.push(item);
+          wx.setStorageSync("bmis", JSON.stringify(data));
+        } else {
+          wx.setStorageSync("bmis", JSON.stringify([item]));
+        }
+      }
     },
     calulateWeight() {
       let bmi = this.bmi;
@@ -266,6 +296,10 @@ export default {
 .form-item {
   border-bottom: 1px solid #e0e0e0;
   margin-top: 10px;
+  padding-bottom: 3px;
+}
+.weui-switch-content {
+  display: inline;
 }
 .form-item-input {
   height: 2.58823529em;
@@ -285,6 +319,7 @@ export default {
   margin-top: 15px;
   position: relative;
   top: 150px;
+  margin-bottom: 10px;
 }
 
 .table-title {

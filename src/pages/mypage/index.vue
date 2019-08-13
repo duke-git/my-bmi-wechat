@@ -101,23 +101,37 @@ export default {
   },
   methods: {
     getChartData: function() {
-      //获取日期，bmi，体重值
-      return {
-        categories: [
-          "2016-01-01",
-          "2016-01-02",
-          "2016-01-03",
-          "2016-01-04",
-          "2016-01-05",
-          "2016-01-06",
-          "2016-01-07",
-          "2016-01-08",
-          "2016-01-09",
-          "2016-01-10"
-        ],
-        bmis: [17.1, 18.1, 19.1, 20.1, 21.1, 20.1, 19.8, 20.8, 18.8, 19.8],
-        weight: [65, 68, 70, 71, 73, 66, 69, 67, 72, 73]
+      let bmis = wx.getStorageSync("bmis");
+      bmis = JSON.parse(bmis);
+      let chartData = {
+        categories: [],
+        bmis: [],
+        weight: []
       };
+
+      bmis.forEach(item => {
+        chartData.categories.push(item.id);
+        chartData.bmis.push(Number(item.bmi));
+        chartData.weight.push(Number(item.weight));
+      });
+      console.log("chart data", chartData);
+      return chartData;
+      // return {
+      //   categories: [
+      //     "2016-01-01",
+      //     "2016-01-02",
+      //     "2016-01-03",
+      //     "2016-01-04",
+      //     "2016-01-05",
+      //     "2016-01-06",
+      //     "2016-01-07",
+      //     "2016-01-08",
+      //     "2016-01-09",
+      //     "2016-01-10"
+      //   ],
+      //   bmis: [17.1, 18.1, 19.1, 20.1, 21.1, 20.1, 19.8, 20.8, 18.8, 19.8],
+      //   weight: [65, 68, 70, 71, 73, 66, 69, 67, 72, 73]
+      // };
     },
     touchHandler: function(e) {
       console.log(this.lineChart.getCurrentDataIndex(e));
