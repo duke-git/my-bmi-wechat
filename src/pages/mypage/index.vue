@@ -25,8 +25,8 @@
         <img class="btn-icon" src="/static/images/share.png" />
         <span>分享给好友</span>
       </button>
-      <button class="btn-item btn-pay">
-        <img class="btn-icon" src="/static/images/pay.png" />
+      <button class="btn-item btn-reward" @click="handleClickReword">
+        <img class="btn-icon" src="/static/images/reward_icon.png" />
         <span>打赏开发者</span>
       </button>
     </div>
@@ -37,6 +37,25 @@
       @onConfirm="onConfirm"
       @onCancel="onCancel"
     ></mp-datepicker>
+    <div class="reward-wrapper" v-show="isRewordShow">
+      <div class="reward-mask" @click="handleClickMask"></div>
+      <div class="reward-img-wrapper">
+        <!--
+        <img
+          src="/static/images/reward.jpg"
+          data-src="/static/images/reward.jpg"
+          class="reward-img"
+          @click="previewRewardImg"
+        />
+        -->
+        <img
+          src="https://ks3-cn-beijing.ksyun.com/fe-frame/project/ebs/image1.jpeg"
+          data-src="https://ks3-cn-beijing.ksyun.com/fe-frame/project/ebs/image1.jpeg"
+          class="reward-img"
+          @click="previewRewardImg"
+        />
+      </div>
+    </div>
   </div>
 </template>
 
@@ -56,6 +75,7 @@ export default {
       lineChart: null,
       chartData: [],
       isCanvasShow: true,
+      isRewordShow: false,
       searchDate: {
         start: this.utils.getDate(),
         end: this.utils.getDate(new Date(), "before", 9),
@@ -191,12 +211,25 @@ export default {
         res.push(Number(item));
       });
       return res;
-      // this.searchDate.defaultDate = res;
-      // console.log(res);
+    },
+    handleClickReword() {
+      this.isRewordShow = true;
+      this.isCanvasShow = false;
+    },
+    handleClickMask() {
+      this.isRewordShow = false;
+      this.isCanvasShow = true;
+    },
+    previewRewardImg(e) {
+      console.log(1);
+      let current = e.target.dataset.src; //这里获取到的是一张本地的图片
+      wx.previewImage({
+        current: current, //需要预览的图片链接列表
+        urls: [current] //当前显示图片的链接
+      });
     }
   },
   onShow() {
-    // this.initDefaultDate();
     this.getChartData();
     this.initChart();
   },
@@ -243,7 +276,6 @@ export default {
 canvas {
   width: 100%;
   height: 200px;
-  z-index: -1;
 }
 .search-wrapper {
   text-align: left;
@@ -282,7 +314,7 @@ canvas {
 .btn-share {
   background: #7ebb85;
 }
-.btn-pay {
+.btn-reward {
   background: #74b3d8;
 }
 .btn-icon {
@@ -290,5 +322,29 @@ canvas {
   height: 20px;
   vertical-align: text-bottom;
   margin-right: 10px;
+}
+.reward-wrapper {
+  width: 100%;
+}
+
+.reward-mask {
+  position: fixed;
+  z-index: 1000;
+  top: 0;
+  right: 0;
+  left: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.6);
+}
+.reward-img-wrapper {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  z-index: 3000;
+}
+.reward-img {
+  width: 100%;
+  height: 375px;
 }
 </style>
