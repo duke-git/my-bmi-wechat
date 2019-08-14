@@ -57,9 +57,9 @@ export default {
       chartData: [],
       isCanvasShow: true,
       searchDate: {
-        start: "",
-        end: "",
-        default: new Date(this.utils.getDate()),
+        start: this.utils.getDate(),
+        end: this.utils.getDate(new Date(), "before", 9),
+        defaultDate: this.initDefaultDate(),
         themeColor: "#2B7489"
       }
     };
@@ -75,7 +75,6 @@ export default {
         console.error("getSystemInfoSync failed!");
       }
       let chartData = this.chartData;
-      console.log("chartData", chartData);
       if (chartData.bmis.length > 0) {
         this.lineChart = new wxCharts({
           canvasId: "lineCanvas",
@@ -138,7 +137,6 @@ export default {
       this.chartData = chartData;
     },
     touchHandler: function(e) {
-      console.log(this.lineChart.getCurrentDataIndex(e));
       this.lineChart.showToolTip(e, {
         format: function(item, category) {
           return category + " " + item.name + ":" + item.data;
@@ -158,7 +156,6 @@ export default {
       this.searchBmis();
     },
     searchBmis() {
-      console.log("searchbmis");
       let start = this.searchDate.start;
       let end = this.searchDate.end;
       let bmis = wx.getStorageSync("bmis");
@@ -173,7 +170,6 @@ export default {
         bmis = bmis.filter(item => {
           return item.id >= end && item.id <= start;
         });
-        console.log("bmis", bmis);
         bmis.forEach(item => {
           chartData.categories.push(item.id);
           chartData.bmis.push(Number(item.bmi));
@@ -185,11 +181,22 @@ export default {
       this.initChart();
     },
     onCancel(e) {
-      this.isCanvasShow = true;
-      console.log("onCancel", e);
+      this.searchBmis();
+    },
+    initDefaultDate() {
+      let date = this.utils.getDate();
+      let dateArr = date.split("-");
+      let res = [];
+      dateArr.forEach(item => {
+        res.push(Number(item));
+      });
+      return res;
+      // this.searchDate.defaultDate = res;
+      // console.log(res);
     }
   },
-  mounted() {
+  onShow() {
+    // this.initDefaultDate();
     this.getChartData();
     this.initChart();
   },
@@ -205,9 +212,6 @@ export default {
         // 转发成功
         console.log("转发成功:" + JSON.stringify(res));
         let shareTickets = res.shareTickets;
-        // if (shareTickets.length == 0) {
-        //   return false;
-        // }
         //可以获取群组信息
         wx.getShareInfo({
           shareTicket: shareTickets[0],
@@ -217,7 +221,6 @@ export default {
         });
       },
       fail: function(res) {
-        // 转发失败
         console.log("转发失败:" + JSON.stringify(res));
       }
     };
