@@ -84,6 +84,7 @@
       :content="tost.content"
       :duration="tost.duration"
     ></mp-toast>
+    <!--
     <img
       v-show="aniImageType=='happy'"
       class="animate-img"
@@ -108,6 +109,7 @@
       :animation="myAnimation"
       src="/static/images/eat.gif"
     />
+    -->
   </div>
 </template>
 
@@ -144,13 +146,6 @@ export default {
       isSave: false
     };
   },
-
-  // onReady: function() {
-  //   this.myAnimation = wx.createAnimation({
-  //     duration: 800,
-  //     timingFunction: "ease"
-  //   });
-  // },
 
   methods: {
     handleCalculate() {
