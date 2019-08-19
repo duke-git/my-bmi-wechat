@@ -5,7 +5,7 @@
       <div class="search-wrapper">
         <span
           style="color: #a9a9a9;font-size:12px;"
-        >注：考虑到图表显示体验，限制搜索10天以内数据（只有开始日期可选择，结束日期固定设置为开始日期以前10天）</span>
+        >注：考虑到图表显示体验，限制搜索30天以内数据（只有开始日期可选择，结束日期固定设置为开始日期以前30天）</span>
         <div
           class="search-date search-date-clickable"
           @click="showDatePicker"
@@ -25,49 +25,42 @@
         <img class="btn-icon" src="/static/images/share.png" />
         <span>分享给好友</span>
       </button>
-      <button class="btn-item btn-reward" @click="handleClickReword">
+      <button class="btn-item btn-reward" @click="showRewardImg">
         <img class="btn-icon" src="/static/images/reward_icon.png" />
         <span>打赏开发者</span>
       </button>
     </div>
-    <mp-datepicker
-      ref="mpDatePicker"
-      :themeColor="searchDate.themeColor"
-      :defaultDate="searchDate.defaultDate"
-      @onConfirm="onConfirm"
-      @onCancel="onCancel"
-    ></mp-datepicker>
-    <div class="reward-wrapper" v-show="isRewordShow">
-      <div class="reward-mask" @click="handleClickMask"></div>
-      <div class="reward-img-wrapper">
-        <!--
-        <img
-          src="/static/images/reward.jpg"
-          data-src="/static/images/reward.jpg"
-          class="reward-img"
-          @click="previewRewardImg"
-        />
-        -->
-        <img
-          src="https://ks3-cn-beijing.ksyun.com/fe-frame/project/ebs/image1.jpeg"
-          data-src="https://ks3-cn-beijing.ksyun.com/fe-frame/project/ebs/image1.jpeg"
-          class="reward-img"
-          @click="previewRewardImg"
-        />
-      </div>
-    </div>
+    <van-popup :show="isDatepickerShow" position="bottom" :overlay="true">
+      <van-datetime-picker
+        type="date"
+        :value="searchDate.value"
+        @confirm="onConfirmDate"
+        @cancel="onCancelDate"
+      />
+    </van-popup>
+    <van-popup
+      :show="isRewordShow"
+      position="bottom"
+      :overlay="true"
+      @close="onCloseMask"
+      :close-on-click-overlay="true"
+    >
+      <img
+        src="https://ks3-cn-beijing.ksyun.com/fe-frame/project/ebs/image1.jpeg"
+        data-src="https://ks3-cn-beijing.ksyun.com/fe-frame/project/ebs/image1.jpeg"
+        class="reward-img"
+        @click="previewRewardImg"
+      />
+    </van-popup>
   </div>
 </template>
 
 <script>
-import { formatTime } from "@/utils/index";
 let wxCharts = require("@/utils/wxcharts-min.js");
-import mpDatepicker from "mpvue-weui/src/date-picker";
 import mpButton from "mpvue-weui/src/button";
 
 export default {
   components: {
-    mpDatepicker,
     mpButton
   },
   data() {
@@ -78,10 +71,11 @@ export default {
       isRewordShow: false,
       searchDate: {
         start: this.utils.getDate(),
-        end: this.utils.getDate(new Date(), "before", 9),
-        defaultDate: this.initDefaultDate(),
+        end: this.utils.getDate(new Date(), "before", 30),
+        value: new Date().getTime(),
         themeColor: "#2B7489"
-      }
+      },
+      isDatepickerShow: false
     };
   },
   methods: {
@@ -164,15 +158,18 @@ export default {
       });
     },
     showDatePicker() {
-      this.$refs.mpDatePicker.show();
+      this.isDatepickerShow = true;
       this.isCanvasShow = false;
     },
-    onConfirm(e) {
-      console.log("onConfirm", e);
-      let value = e.value;
-      let date = value[0] + "-" + value[1] + "-" + value[2];
+    onConfirmDate(e) {
+      this.isDatepickerShow = false;
+      let date = new Date(e.mp.detail);
       this.searchDate.start = this.utils.getDate(new Date(date));
       this.searchDate.end = this.utils.getDate(new Date(date), "before", 9);
+      this.searchBmis();
+    },
+    onCancelDate() {
+      this.isDatepickerShow = false;
       this.searchBmis();
     },
     searchBmis() {
@@ -200,23 +197,12 @@ export default {
       this.chartData = chartData;
       this.initChart();
     },
-    onCancel(e) {
-      this.searchBmis();
-    },
-    initDefaultDate() {
-      let date = this.utils.getDate();
-      let dateArr = date.split("-");
-      let res = [];
-      dateArr.forEach(item => {
-        res.push(Number(item));
-      });
-      return res;
-    },
-    handleClickReword() {
+
+    showRewardImg() {
       this.isRewordShow = true;
       this.isCanvasShow = false;
     },
-    handleClickMask() {
+    onCloseMask() {
       this.isRewordShow = false;
       this.isCanvasShow = true;
     },
@@ -323,26 +309,7 @@ canvas {
   vertical-align: text-bottom;
   margin-right: 10px;
 }
-.reward-wrapper {
-  width: 100%;
-}
 
-.reward-mask {
-  position: fixed;
-  z-index: 1000;
-  top: 0;
-  right: 0;
-  left: 0;
-  bottom: 0;
-  background: rgba(0, 0, 0, 0.6);
-}
-.reward-img-wrapper {
-  position: fixed;
-  bottom: 0;
-  left: 0;
-  width: 100%;
-  z-index: 3000;
-}
 .reward-img {
   width: 100%;
   height: 375px;
