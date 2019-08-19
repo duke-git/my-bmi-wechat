@@ -165,7 +165,7 @@ export default {
       this.isDatepickerShow = false;
       let date = new Date(e.mp.detail);
       this.searchDate.start = this.utils.getDate(new Date(date));
-      this.searchDate.end = this.utils.getDate(new Date(date), "before", 9);
+      this.searchDate.end = this.utils.getDate(new Date(date), "before", 30);
       this.searchBmis();
     },
     onCancelDate() {
