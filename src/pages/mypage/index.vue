@@ -1,7 +1,7 @@
 <template>
   <div class="mypage-wrapper">
     <div class="chart-wrapper">
-      <span class="chart-title">体重/BMI趋势图示</span>
+      <span class="chart-title">体重/BMI趋势图示：</span>
       <div class="search-wrapper">
         <span
           style="color: #a9a9a9;font-size:12px;"
@@ -19,6 +19,27 @@
         class="canvas"
         @touchstart="touchHandler"
       ></canvas>
+    </div>
+    <div class="table-wrapper">
+      <span class="table-title">数据记录：</span>
+      <div class="bmi-table">
+        <div class="bmi-table-head">
+          <div class="tr">
+            <div class="th" style="width: 30%;">日期</div>
+            <div class="th">BMI</div>
+            <div class="th">体重(kg)</div>
+            <div class="th">操作</div>
+          </div>
+        </div>
+        <div class="bmi-table-body">
+          <div class="tr" v-for="(item, index) in tableData" :key="index">
+            <div class="td">{{item.id}}</div>
+            <div class="td">{{item.bmi}}</div>
+            <div class="td">{{item.weight}}</div>
+            <div class="td"><a style="color:blue;" @click="onDeleteBMI(item)">删除</a></div>
+          </div>
+        </div>
+      </div>
     </div>
     <div class="btn-wrapper">
       <button class="btn-item btn-share" open-type="share">
@@ -52,16 +73,31 @@
         @click="previewRewardImg"
       />
     </van-popup>
+    <van-dialog id="deletebmi-dialog" 
+      :show="isShowDelete"
+      message="删除数据不可恢复，确认删除本条记录？"
+      :show-cancel-button="true"
+      @confirm="deleteBMI"
+      @cancel="cancelDelete"
+    />
+    <mp-toast
+      :type="tost.type"
+      v-model="tost.show"
+      :content="tost.content"
+      :duration="tost.duration"
+    ></mp-toast>
   </div>
 </template>
 
 <script>
 let wxCharts = require("@/utils/wxcharts-min.js");
 import mpButton from "mpvue-weui/src/button";
+import mpToast from "mpvue-weui/src/toast";
 
 export default {
   components: {
-    mpButton
+    mpButton,
+    mpToast
   },
   data() {
     return {
@@ -75,10 +111,24 @@ export default {
         value: new Date().getTime(),
         themeColor: "#2B7489"
       },
-      isDatepickerShow: false
+      isDatepickerShow: false,
+      tableData: [],
+      isShowDelete: false,
+      currentDeleteBMI: null,
+      tost: {
+        show: false,
+        type: "default",
+        content: "",
+        duration: 1500
+      },
     };
   },
   methods: {
+    initPageData() {
+      this.getChartData();
+      this.initChart();
+      this.getTableData();
+    },
     initChart: function() {
       this.isCanvasShow = true;
       let windowWidth = 320;
@@ -150,6 +200,28 @@ export default {
       }
       this.chartData = chartData;
     },
+    getTableData() {
+      let start = this.searchDate.start;
+      let end = this.searchDate.end;
+      let bmis = wx.getStorageSync("bmis");
+      let tableData = [];
+
+      if (bmis) {
+        bmis = JSON.parse(bmis);
+        bmis = bmis.filter(item => {
+          return item.id >= end && item.id <= start;
+        });
+        bmis.forEach(item => {
+          tableData.push({
+            id:item.id,
+            bmi: item.bmi,
+            weight: item.weight
+          });
+        });
+      }
+
+      this.tableData = tableData;
+    },
     touchHandler: function(e) {
       this.lineChart.showToolTip(e, {
         format: function(item, category) {
@@ -196,8 +268,38 @@ export default {
 
       this.chartData = chartData;
       this.initChart();
+      this.getTableData();
     },
 
+    onDeleteBMI(item) {
+      this.isShowDelete = true;
+      this.currentDeleteBMI = item;
+    },
+    deleteBMI() {
+      let bmis = wx.getStorageSync("bmis");
+      if (bmis) {
+        bmis = JSON.parse(bmis);
+        bmis = bmis.filter(item => {
+          return item.id != this.currentDeleteBMI.id;
+        });
+        wx.setStorageSync("bmis", JSON.stringify(bmis));
+        this.showTost("success", "删除成功", 2000);
+        this.initPageData();
+      }else {
+        console.error("删除bmi错误")
+      }
+      this.isShowDelete = false;
+    },
+    showTost(type, content, duration = 1500) {
+      this.tost.show = true;
+      this.tost.type = type;
+      this.tost.content = content;
+      this.tost.duration = duration;
+    },
+    cancelDelete() {
+      this.isShowDelete = false;
+      this.currentDeleteBMI = null;
+    },
     showRewardImg() {
       this.isRewordShow = true;
       this.isCanvasShow = false;
@@ -216,8 +318,7 @@ export default {
     }
   },
   onShow() {
-    this.getChartData();
-    this.initChart();
+    this.initPageData();
   },
   onShareAppMessage: function(ops) {
     if (ops.from === "button") {
@@ -254,10 +355,11 @@ export default {
 .chart-wrapper {
   width: 100%;
   padding: 10px 0;
-  text-align: center;
+  /* text-align: center; */
 }
 .chart-title {
   font-size: 16px;
+  padding: 0 2px;
 }
 canvas {
   width: 100%;
@@ -280,6 +382,41 @@ canvas {
 .search-date-clickable {
   border: 0.5px solid #e0e0e0;
   box-shadow: 0px 0.5rpx 0.5rpx 0px #2f5024;
+}
+.table-wrapper {
+  position: relative;
+  margin-bottom: 50px;
+}
+
+.table-title {
+  font-size: 16px;
+  padding-left: 5px;
+}
+
+.bmi-table {
+  width: 90%;
+  border-bottom: 1px solid #ebebeb;
+  border-top: 1px solid #ebebeb;
+  font-size: 14px;
+  padding: 0 10px;
+  height: 140px;
+  overflow-y: scroll;
+}
+.bmi-table-head {
+  color: #909399;
+  font-weight: 500;
+  background-color: #f5f5f5;
+}
+
+.bmi-table-body {
+  text-align: center;
+  color: #606266;
+}
+.tr {
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+  border-bottom: 0.1px solid #e0e0e0;
 }
 .btn-wrapper {
   position: fixed;
