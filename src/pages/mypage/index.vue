@@ -36,7 +36,9 @@
             <div class="td">{{item.id}}</div>
             <div class="td">{{item.bmi}}</div>
             <div class="td">{{item.weight}}</div>
-            <div class="td"><a style="color:blue;" @click="onDeleteBMI(item)">删除</a></div>
+            <div class="td">
+              <a style="color:blue;" @click="onDeleteBMI(item)">删除</a>
+            </div>
           </div>
         </div>
       </div>
@@ -73,7 +75,8 @@
         @click="previewRewardImg"
       />
     </van-popup>
-    <van-dialog id="deletebmi-dialog" 
+    <van-dialog
+      id="deletebmi-dialog"
       :show="isShowDelete"
       message="删除数据不可恢复，确认删除本条记录？"
       :show-cancel-button="true"
@@ -120,7 +123,7 @@ export default {
         type: "default",
         content: "",
         duration: 1500
-      },
+      }
     };
   },
   methods: {
@@ -213,14 +216,14 @@ export default {
         });
         bmis.forEach(item => {
           tableData.push({
-            id:item.id,
+            id: item.id,
             bmi: item.bmi,
             weight: item.weight
           });
         });
       }
 
-      this.tableData = tableData;
+      this.tableData = tableData.reverse();
     },
     touchHandler: function(e) {
       this.lineChart.showToolTip(e, {
@@ -272,6 +275,7 @@ export default {
     },
 
     onDeleteBMI(item) {
+      this.isCanvasShow = false;
       this.isShowDelete = true;
       this.currentDeleteBMI = item;
     },
@@ -285,10 +289,11 @@ export default {
         wx.setStorageSync("bmis", JSON.stringify(bmis));
         this.showTost("success", "删除成功", 2000);
         this.initPageData();
-      }else {
-        console.error("删除bmi错误")
+      } else {
+        console.error("删除bmi错误");
       }
       this.isShowDelete = false;
+      this.isCanvasShow = true;
     },
     showTost(type, content, duration = 1500) {
       this.tost.show = true;
@@ -297,6 +302,7 @@ export default {
       this.tost.duration = duration;
     },
     cancelDelete() {
+      this.isCanvasShow = true;
       this.isShowDelete = false;
       this.currentDeleteBMI = null;
     },
@@ -394,9 +400,8 @@ canvas {
 }
 
 .bmi-table {
-  width: 90%;
-  border-bottom: 1px solid #ebebeb;
-  border-top: 1px solid #ebebeb;
+  border-bottom: 0.5px solid #ebebeb;
+  border-top: 0.5px solid #ebebeb;
   font-size: 14px;
   padding: 0 10px;
   height: 140px;
