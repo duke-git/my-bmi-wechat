@@ -3,14 +3,12 @@
     <div class="chart-wrapper">
       <span class="chart-title">体重/BMI趋势图示：</span>
       <div class="search-wrapper">
-        <span
-          style="color: #a9a9a9;font-size:12px;"
-        >注：考虑到图表显示体验，限制搜索30天以内数据（只有开始日期可选择，结束日期固定设置为开始日期以前30天）</span>
+        <span style="color: #a9a9a9;font-size:12px;">注：考虑到图表显示体验，限制搜索30天以内数据</span>
+        <div class="search-date search-date-clickable" @click="showDateEnd">结束日期：{{searchDate.end}}</div>
         <div
           class="search-date search-date-clickable"
-          @click="showDatePicker"
+          @click="showDateStart"
         >起始日期：{{searchDate.start}}</div>
-        <div class="search-date">结束日期：{{searchDate.end}}</div>
       </div>
       <canvas
         v-show="isCanvasShow"
@@ -53,12 +51,23 @@
         <span>打赏开发者</span>
       </button>
     </div>
-    <van-popup :show="isDatepickerShow" position="bottom" :overlay="true">
+    <van-popup :show="isDateEndShow" position="bottom" :overlay="true">
       <van-datetime-picker
         type="date"
-        :value="searchDate.value"
-        @confirm="onConfirmDate"
-        @cancel="onCancelDate"
+        :value="searchDate.valueEnd"
+        :max-date="searchDate.maxEndDate"
+        @confirm="onConfirmDateEnd"
+        @cancel="onCancelDateEnd"
+      />
+    </van-popup>
+    <van-popup :show="isDateStartShow" position="bottom" :overlay="true">
+      <van-datetime-picker
+        type="date"
+        :value="searchDate.valueStart"
+        :max-date="searchDate.maxStartDate"
+        :min-date="searchDate.minStartDate"
+        @confirm="onConfirmDateStart"
+        @cancel="onCancelDateStart"
       />
     </van-popup>
     <van-popup
@@ -109,12 +118,17 @@ export default {
       isCanvasShow: true,
       isRewordShow: false,
       searchDate: {
-        start: this.utils.getDate(),
-        end: this.utils.getDate(new Date(), "before", 30),
-        value: new Date().getTime(),
+        end: this.utils.getDate(),
+        start: this.utils.getDate(new Date(), "before", 30),
+        maxEndDate: new Date().getTime(),
+        maxStartDate: new Date().getTime(),
+        minStartDate: new Date().getTime() - 3600 * 1000 * 24 * 30,
+        valueEnd: new Date().getTime(),
+        valueStart: new Date().getTime() - 3600 * 1000 * 24 * 30,
         themeColor: "#2B7489"
       },
-      isDatepickerShow: false,
+      isDateStartShow: false,
+      isDateEndShow: false,
       tableData: [],
       isShowDelete: false,
       currentDeleteBMI: null,
@@ -212,7 +226,7 @@ export default {
       if (bmis) {
         bmis = JSON.parse(bmis);
         bmis = bmis.filter(item => {
-          return item.id >= end && item.id <= start;
+          return item.id >= start && item.id <= end;
         });
         bmis.forEach(item => {
           tableData.push({
@@ -232,19 +246,37 @@ export default {
         }
       });
     },
-    showDatePicker() {
-      this.isDatepickerShow = true;
+    showDateEnd() {
+      this.isDateEndShow = true;
       this.isCanvasShow = false;
     },
-    onConfirmDate(e) {
-      this.isDatepickerShow = false;
+    showDateStart() {
+      this.isDateStartShow = true;
+      this.isCanvasShow = false;
+    },
+    onConfirmDateEnd(e) {
+      this.isDateEndShow = false;
       let date = new Date(e.mp.detail);
-      this.searchDate.start = this.utils.getDate(new Date(date));
-      this.searchDate.end = this.utils.getDate(new Date(date), "before", 9);
+      this.searchDate.end = this.utils.getDate(date);
+      this.searchDate.start = this.utils.getDate(
+        new Date(date.getTime() - 3600 * 1000 * 24 * 30)
+      );
+      this.searchDate.maxStartDate = date.getTime();
+      this.searchDate.minStartDate = date.getTime() - 3600 * 1000 * 24 * 30;
       this.searchBmis();
     },
-    onCancelDate() {
-      this.isDatepickerShow = false;
+    onCancelDateEnd() {
+      this.isDateEndShow = false;
+      this.searchBmis();
+    },
+    onConfirmDateStart(e) {
+      this.isDateStartShow = false;
+      let date = new Date(e.mp.detail);
+      this.searchDate.start = this.utils.getDate(new Date(date));
+      this.searchBmis();
+    },
+    onCancelDateStart() {
+      this.isDateStartShow = false;
       this.searchBmis();
     },
     searchBmis() {
@@ -260,7 +292,7 @@ export default {
       if (bmis) {
         bmis = JSON.parse(bmis);
         bmis = bmis.filter(item => {
-          return item.id >= end && item.id <= start;
+          return item.id >= start && item.id <= end;
         });
         bmis.forEach(item => {
           chartData.categories.push(item.id);
@@ -270,6 +302,8 @@ export default {
       }
 
       this.chartData = chartData;
+      console.log(chartData);
+
       this.initChart();
       this.getTableData();
     },
